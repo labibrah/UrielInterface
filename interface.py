@@ -3,7 +3,7 @@ import pandas as pd
 import random as rnd
 
 'Welcome to URIEL+'
-
+st.button("Settings", icon=":material/settings:")
 df = pd.DataFrame({
     'calculation options': ['Calculate distance between languages','Impute the URIEL database'],
     # 'second column': [10, 20, 30, 40]
