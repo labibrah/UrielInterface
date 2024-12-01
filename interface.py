@@ -2,11 +2,43 @@ import streamlit as st
 import pandas as pd
 import random as rnd
 
+## Global settings variables
+
+
+
 'Welcome to URIEL+'
-st.button("Settings", icon=":material/settings:")
+
+## Settings button and logic to change configurations
+
+if st.button("Settings", icon=":material/settings:"):
+    left_column, middle_column, right_column = st.columns(3)
+    with left_column:
+        cache_toggle = st.toggle("Activate caching", help='Caching is default false to save memory, setting it true means updates to databases or imputation are saved to files')
+    with middle_column:
+        avg_aggregation_toggle = st.toggle("Set aggregation to average", help='Aggregation is default set to union of typological feature data across sources in URIEL+, toggling this will set aggregation to average of typological feature data across sources')
+    with right_column:
+        fill_with_base_lang_toggle = st.toggle("Fill with base language", help="""
+### Aggregating Typological Feature Data
+
+When aggregating typological feature data, the data from a language's parent is used to fill in any missing information for that language. For example, **English** serves as the parent language for **Hong Kong English**, providing data to complete any gaps in typological features for Hong Kong English.
+
+By default, this configuration is set to `True` because it ensures:
+
+- **Better feature coverage**: Maximizing the completeness of data across languages.
+- **High imputation quality**: Maintaining reliable and consistent data accuracy.
+
+This approach enhances the overall quality of typological analysis and minimizes data loss due to incomplete entries.
+""")
+# else:
+#      ''
+
+
+
+
+
+
 df = pd.DataFrame({
     'calculation options': ['Calculate distance between languages','Impute the URIEL database'],
-    # 'second column': [10, 20, 30, 40]
     })
 
 option = st.selectbox(
