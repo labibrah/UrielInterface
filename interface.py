@@ -14,6 +14,7 @@ if st.button("Settings", icon=":material/settings:"):
     left_column, middle_column, right_column = st.columns(3)
     with left_column:
         cache_toggle = st.toggle("Activate caching", help='Caching is default false to save memory, setting it true means updates to databases or imputation are saved to files')
+        distance_option = st.toggle("Set cosine distance", help='Distance metric is default "angular". The distance metric chosen is how language vectors are compared for language distance calculations')
     with middle_column:
         avg_aggregation_toggle = st.toggle("Set aggregation to average", help='Aggregation is default set to union of typological feature data across sources in URIEL+, toggling this will set aggregation to average of typological feature data across sources')
     with right_column:
