@@ -8,7 +8,8 @@ from prompts import (
     FILL_WITH_BASE_LANGUAGE_HELP,
     IMPUTE_OPTIONS_HELP,
     DISTANCE_OPTIONS_HELP,
-    DIALECTS
+    DIALECTS,
+    DIALECTS_HELP
 )
 
 'Welcome to URIEL+'
@@ -79,7 +80,11 @@ if st.button("Settings", icon="⚙️"):
 
 # Display the settings section if it's toggled on
 if st.session_state.show_settings:
-    if st.button("Show dialects", icon="📜"):
+    if "show_dialects" not in st.session_state:
+      st.session_state.show_dialects = False
+    if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
+        st.session_state.show_dialects = not st.session_state.show_dialects
+    if st.session_state.show_dialects:
         st.write(DIALECTS)
     left_column, middle_column, right_column = st.columns(3)
     with left_column:
