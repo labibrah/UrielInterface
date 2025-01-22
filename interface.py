@@ -1,45 +1,124 @@
 import streamlit as st
 import pandas as pd
 import random as rnd
-
-## Global settings variables
-
-## Test
+from prompts import (
+    ACTIVATE_CACHING_HELP,
+    COSINE_DISTANCE_HELP,
+    AGGREGATION_HELP,
+    FILL_WITH_BASE_LANGUAGE_HELP,
+    IMPUTE_OPTIONS_HELP,
+    DISTANCE_OPTIONS_HELP,
+    DIALECTS
+)
 
 'Welcome to URIEL+'
 
 ## Settings button and logic to change configurations
 
-if st.button("Settings", icon=":material/settings:"):
+# Initial toggle values
+# if "cache_toggle_value" not in st.session_state:
+# st.session_state.cache_toggle_value = False
+# st.session_state.cache_toggle_value
+
+# Initialize session state for settings visibility and toggle values
+# if "show_settings" not in st.session_state:
+#     st.session_state.show_settings = False
+# # Changing toggle values
+# # def cache_toggle():
+# #     st.session_state.cache_toggle_value = not st.session_state.cache_toggle_value
+# #     'hello'
+
+# # Toggle the visibility of the settings section
+# if st.button("Settings", icon=":material/settings:"):
+#     st.session_state.show_settings = not st.session_state.show_settings
+
+# # Display the settings section if it's toggled on
+# if st.session_state.show_settings:
+#    left_column, middle_column, right_column = st.columns(3)
+#    with left_column:
+#         cache_toggle = st.toggle(
+#             "Activate caching", 
+#             help=ACTIVATE_CACHING_HELP,
+#             # value= not st.session_state.cache_toggle_value,
+#             key="cache_toggle_value",
+#             # on_change=cache_toggle
+#         )
+#         distance_option = st.toggle(
+#             "Set cosine distance", 
+#             help=COSINE_DISTANCE_HELP
+#         )
+#    with middle_column:
+#         avg_aggregation_toggle = st.toggle(
+#             "Set aggregation to average", 
+#             help=AGGREGATION_HELP
+#         )
+#    with right_column:
+#         fill_with_base_lang_toggle = st.toggle(
+#             "Fill with base language", 
+#             help=FILL_WITH_BASE_LANGUAGE_HELP
+#         )
+
+
+
+# Initialize session state for settings visibility and toggle values
+if "show_settings" not in st.session_state:
+    st.session_state.show_settings = False
+if "cache_toggle_value" not in st.session_state:
+    st.session_state.cache_toggle_value = False
+if "distance_option_value" not in st.session_state:
+    st.session_state.distance_option_value = False
+if "avg_aggregation_toggle" not in st.session_state:
+    st.session_state.avg_aggregation_toggle = False
+if "fill_with_base_lang_toggle" not in st.session_state:
+    st.session_state.fill_with_base_lang_toggle = False
+
+# Toggle the visibility of the settings section
+# if st.button("Settings", icon=":material/settings:"):
+if st.button("Settings", icon="⚙️"):
+    st.session_state.show_settings = not st.session_state.show_settings
+
+# Display the settings section if it's toggled on
+if st.session_state.show_settings:
+    if st.button("Show dialects", icon="📜"):
+        st.write(DIALECTS)
     left_column, middle_column, right_column = st.columns(3)
     with left_column:
-        cache_toggle = st.toggle("Activate caching", help='Caching is default false to save memory, setting it true means updates to databases or imputation are saved to files')
-        distance_option = st.toggle("Set cosine distance", help='Distance metric is default "angular". The distance metric chosen is how language vectors are compared for language distance calculations')
+        st.session_state.cache_toggle_value = st.checkbox(
+            "Activate caching",
+            value=st.session_state.get("cache_toggle_value", False),
+            help=ACTIVATE_CACHING_HELP
+        )
+        st.session_state.distance_option_value = st.checkbox(
+            "Set cosine distance",
+            value=st.session_state.get("distance_option_value", False),
+            help=COSINE_DISTANCE_HELP
+        )
     with middle_column:
-        avg_aggregation_toggle = st.toggle("Set aggregation to average", help='Aggregation is default set to union of typological feature data across sources in URIEL+, toggling this will set aggregation to average of typological feature data across sources')
+        st.session_state.avg_aggregation_toggle = st.checkbox(
+            "Set aggregation to average",
+            value=st.session_state.get("avg_aggregation_toggle", False),
+            help=AGGREGATION_HELP
+        )
     with right_column:
-        fill_with_base_lang_toggle = st.toggle("Fill with base language", help="""
-### Aggregating Typological Feature Data
+        st.session_state.fill_with_base_lang_toggle = st.checkbox(
+            "Fill with base language",
+            value=st.session_state.get("fill_with_base_lang_toggle", False),
+            help=FILL_WITH_BASE_LANGUAGE_HELP
+        )
+        
+        
 
-When aggregating typological feature data, the data from a language's parent is used to fill in any missing information for that language. For example, **English** serves as the parent language for **Hong Kong English**, providing data to complete any gaps in typological features for Hong Kong English.
-
-By default, this configuration is set to `True` because it ensures:
-
-- **Better feature coverage**: Maximizing the completeness of data across languages.
-- **High imputation quality**: Maintaining reliable and consistent data accuracy.
-
-This approach enhances the overall quality of typological analysis and minimizes data loss due to incomplete entries.
-""")
-# else:
-#      ''
-
-
-
-
-
+# Display the current states (for debugging purposes)
+st.write("Prompts below are for testing only:")
+st.write("Settings state:", st.session_state.show_settings)
+st.write("Caching active:", st.session_state.cache_toggle_value)
+st.write("Distance option active:", st.session_state.distance_option_value)
+st.write("Aggregation toggle:", st.session_state.avg_aggregation_toggle)
+st.write("Fill with base language:", st.session_state.fill_with_base_lang_toggle)
 
 df = pd.DataFrame({
     'calculation options': ['Calculate distance between languages','Impute the URIEL database'],
+    # 'second column': [10, 20, 30, 40]
     })
 
 option = st.selectbox(
@@ -66,30 +145,7 @@ if (option == 'Impute the URIEL database'):
     'Which database would you like to impute into the URIEL database?',
      df['impute options'],
      index=None,
-     help= """
-1. **Updated SAPhon**:  
-   A revised and expanded database of South American phonological inventories, focusing on phoneme systems and their typological features.
-
-2. **BDProto**:  
-   A database for studying protolanguages, providing reconstructed linguistic data to understand historical language evolution.
-
-3. **Grambank**:  
-   A global comparative database of grammatical structures, capturing cross-linguistic diversity in syntactic and morphological features.
-
-4. **APiCS**:  
-   The Atlas of Pidgin and Creole Language Structures, documenting structural features of creole and pidgin languages worldwide.
-
-5. **eWave**:  
-   The electronic World Atlas of Varieties of English, detailing linguistic features and variation across English dialects.
-
-6. **Inferred**:  
-   A dataset containing linguistically inferred or derived features, often used for comparative or evolutionary studies.
-
-7. **All**:  
-   Refers to the collective use of all the above databases for comprehensive linguistic analysis and cross-referencing.
-"""
-
-     )
+     help= IMPUTE_OPTIONS_HELP)
     if st.button('Impute'):
             'The URIEL database was successfully imputed.'
 
@@ -102,30 +158,7 @@ elif (option == 'Calculate distance between languages'):
     'What kind of distance would you like to calculate?',
      df['distance options'],
      index=None,
-     help="""# Types of Language Distances
-
-1. **Geographic**:  
-   Measures the physical distance between the regions where languages are spoken, often reflecting historical contact or isolation.
-
-2. **Featural**:  
-   Compares specific linguistic features (e.g., word order, inflection) to quantify structural similarities or differences.
-
-3. **Genetic**:  
-   Based on historical and evolutionary relationships, tracing back to a common ancestral language.
-
-4. **Morphological**:  
-   Examines how languages form words, focusing on aspects like inflection, derivation, and word-building strategies.
-
-5. **Inventory**:  
-   Compares the sets of phonemes (vowels, consonants) present in languages, assessing sound system similarities.
-
-6. **Phonological**:  
-   Studies the systems of sounds and rules governing pronunciation and sound patterns in languages.
-
-7. **Syntactic**:  
-   Analyzes differences in sentence structure and grammatical rules, such as subject-verb-object order.
-"""""
-     )
+     help=DISTANCE_OPTIONS_HELP)
    
     if distance_option != None and distance_option[0] != None:
         options = st.multiselect(
