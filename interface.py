@@ -79,80 +79,80 @@ from prompts import (
 # }
 
 # Example: Test the root endpoint
-def test_root():
-    response = requests.get(f"{BASE_URL}/start_session", headers=HEADERS)
-    if response.status_code == 200:
-        try:
-            # Try to parse JSON response
-            print("Root Response (JSON):", response.json())
-        except requests.exceptions.JSONDecodeError:
-            # If it's not JSON, fallback to plain text
-            print("Root Response (Text):", response.text)
-    else:
-        print("Error:", response.status_code, response.text)
-    return response.text
+# def test_root():
+#     response = requests.get(f"{BASE_URL}/start_session", headers=HEADERS)
+#     if response.status_code == 200:
+#         try:
+#             # Try to parse JSON response
+#             print("Root Response (JSON):", response.json())
+#         except requests.exceptions.JSONDecodeError:
+#             # If it's not JSON, fallback to plain text
+#             print("Root Response (Text):", response.text)
+#     else:
+#         print("Error:", response.status_code, response.text)
+#     return response.text
 
-# Example: GET /distance
-def get_distance(params):
-    """
-    Example query parameters: {"lang1": "eng", "lang2": "jpn"}
-    """
-    response = requests.get(f"{BASE_URL}/distance", headers=HEADERS, params=params)
-    if response.status_code == 200:
-        print("Distance Response:", response.json())
-    else:
-        print("Error:", response.status_code, response.text)
-    return response.json()
+# # Example: GET /distance
+# def get_distance(params):
+#     """
+#     Example query parameters: {"lang1": "eng", "lang2": "jpn"}
+#     """
+#     response = requests.get(f"{BASE_URL}/distance", headers=HEADERS, params=params)
+#     if response.status_code == 200:
+#         print("Distance Response:", response.json())
+#     else:
+#         print("Error:", response.status_code, response.text)
+#     return response.json()
 
-# Example: POST /custom_distance
-def post_custom_distance(data):
-    """
-    Example payload:
-    {
-        "lang1": "eng",
-        "lang2": "jpn",
-        "features": ["phonological", "syntactic"]
-    }
-    """
-    response = requests.post(f"{BASE_URL}/custom_distance", headers=HEADERS, json=data)
-    if response.status_code == 200:
-        print("Custom Distance Response:", response.json())
-    else:
-        print("Error:", response.status_code, response.text)
-    return response.text
+# # Example: POST /custom_distance
+# def post_custom_distance(data):
+#     """
+#     Example payload:
+#     {
+#         "lang1": "eng",
+#         "lang2": "jpn",
+#         "features": ["phonological", "syntactic"]
+#     }
+#     """
+#     response = requests.post(f"{BASE_URL}/custom_distance", headers=HEADERS, json=data)
+#     if response.status_code == 200:
+#         print("Custom Distance Response:", response.json())
+#     else:
+#         print("Error:", response.status_code, response.text)
+#     return response.text
 
-# Example: GET /distance_vector
-def get_distance_vector(lang):
-    """
-    Example query parameter: {"lang": "eng"}
-    """
-    response = requests.get(f"{BASE_URL}/distance_vector", headers=HEADERS, params={"lang": lang})
-    if response.status_code == 200:
-        print("Distance Vector Response:", response.json())
-    else:
-        print("Error:", response.status_code, response.text)
+# # Example: GET /distance_vector
+# def get_distance_vector(lang):
+#     """
+#     Example query parameter: {"lang": "eng"}
+#     """
+#     response = requests.get(f"{BASE_URL}/distance_vector", headers=HEADERS, params={"lang": lang})
+#     if response.status_code == 200:
+#         print("Distance Vector Response:", response.json())
+#     else:
+#         print("Error:", response.status_code, response.text)
 
-# Example: GET /feature_coverage
-def get_feature_coverage(lang):
-    """
-    Example query parameter: {"lang": "eng"}
-    """
-    response = requests.get(f"{BASE_URL}/feature_coverage", headers=HEADERS, params={"lang": lang})
-    if response.status_code == 200:
-        print("Feature Coverage Response:", response.json())
-    else:
-        print("Error:", response.status_code, response.text)
+# # Example: GET /feature_coverage
+# def get_feature_coverage(lang):
+#     """
+#     Example query parameter: {"lang": "eng"}
+#     """
+#     response = requests.get(f"{BASE_URL}/feature_coverage", headers=HEADERS, params={"lang": lang})
+#     if response.status_code == 200:
+#         print("Feature Coverage Response:", response.json())
+#     else:
+#         print("Error:", response.status_code, response.text)
 
-# Example: GET /confidence_score
-def get_confidence_score(lang):
-    """
-    Example query parameter: {"lang": "eng"}
-    """
-    response = requests.get(f"{BASE_URL}/confidence_score", headers=HEADERS, params={"lang": lang})
-    if response.status_code == 200:
-        print("Confidence Score Response:", response.json())
-    else:
-        print("Error:", response.status_code, response.text)
+# # Example: GET /confidence_score
+# def get_confidence_score(lang):
+#     """
+#     Example query parameter: {"lang": "eng"}
+#     """
+#     response = requests.get(f"{BASE_URL}/confidence_score", headers=HEADERS, params={"lang": lang})
+#     if response.status_code == 200:
+#         print("Confidence Score Response:", response.json())
+#     else:
+#         print("Error:", response.status_code, response.text)
 
 # Test the root endpoint
 # st.write(test_root())
