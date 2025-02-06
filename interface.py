@@ -3,7 +3,7 @@ import pandas as pd
 import random as rnd
 import requests
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from prompts import (
     ACTIVATE_CACHING_HELP,
     COSINE_DISTANCE_HELP,
@@ -63,20 +63,20 @@ from prompts import (
 #         )
 
 # Load the .env file
-load_dotenv()
+# load_dotenv()
 
 # Retrieve the API key
-API_KEY = os.getenv("URIEL_API_KEY")
+# API_KEY = os.getenv("URIEL_API_KEY")
 
 
 # Base URL for the API
-BASE_URL = "https://uriel-api-p-197469327377.us-east1.run.app"
+# BASE_URL = "https://uriel-api-p-197469327377.us-east1.run.app"
 
 
 # Headers for authentication
-HEADERS = {
-    "URIEL-API-key": API_KEY
-}
+# HEADERS = {
+#     "URIEL-API-key": API_KEY
+# }
 
 # Example: Test the root endpoint
 def test_root():
