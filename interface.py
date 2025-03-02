@@ -1,11 +1,9 @@
 import streamlit as st
 import pandas as pd
-import ast
+import random as rnd
 import requests
 import os
 from dotenv import load_dotenv
-import json
-
 from prompts import (
     URIEL_INTRO,
     ACTIVATE_CACHING_HELP,
@@ -77,7 +75,7 @@ def post_custom_distance(data):
     """
     response = requests.post(f"{BASE_URL}/custom_distance", headers=HEADERS, json=data)
     if response.status_code == 200:
-        print("Custom Distance Response:", response.json())
+        print("Custom Distance Response:", response.text)
     else:
         print("Error:", response.status_code, response.text)
     return response.text
@@ -94,13 +92,22 @@ def get_distance_vector(params):
         print("Error:", response.status_code, response.text)
 
 # Example: GET /feature_coverage
-def get_feature_coverage():
+def get_feature_coverage(resource_options,distance_type):
     """
     Example query parameter: {"lang": "eng"}
     """
-    response = requests.get(f"{BASE_URL}/feature_coverage")
+    params = {
+        "resource_level": resource_options,  # Ensure this matches the API docs
+        "distance_type": distance_type  # Convert list to CSV string
+    }
+    # response = requests.get(f"{BASE_URL}/set_glottocodes", headers=HEADERS)
+    st.write(headers)
+    # time.sleep(5)
+    st.write(params)
+    # response = requests.get(f"{BASE_URL}/feature_coverage", headers=HEADERS,params=params)
     if response.status_code == 200:
-        print("Feature Coverage Response:", response.json())
+        print("Feature Coverage Response:", response.text)
+        return response.text
     else:
         print("Error:", response.status_code, response.text)
 
@@ -179,8 +186,16 @@ def get_distance_vector_(type, languages):
 
 # get_confidence_score({"language_1": "eng", "language_2": "fra", "distance_type": "featural"})
 
-
-
+def get_loaded_feature(params):
+    """
+    Example query parameters: {"lang1": "eng", "lang2": "jpn"}
+    """
+    response = requests.get(f"{BASE_URL}/loaded_feature_array", headers=HEADERS, params=params)
+    if response.status_code == 200:
+        print("Distance Response:", response.json())
+    else:
+        print("Error:", response.status_code, response.text)
+    return response.json()
 
 # Initialize session state for settings visibility and toggle values
 if "show_settings" not in st.session_state:
@@ -206,7 +221,9 @@ if st.session_state.show_settings:
     if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
         st.session_state.show_dialects = not st.session_state.show_dialects
     if st.session_state.show_dialects:
-        st.write(DIALECTS)
+        df = pd.DataFrame(DIALECTS.items(), columns=["ID", "Dialects"])
+
+        st.dataframe(df, height=500)
     left_column, middle_column, right_column = st.columns(3)
     with left_column:
         st.session_state.cache_toggle_value = st.checkbox(
@@ -243,7 +260,7 @@ if st.session_state.show_settings:
 # st.write("Fill with base language:", st.session_state.fill_with_base_lang_toggle)
 
 df = pd.DataFrame({
-    'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using features','Calculate confidence score betweeen two languages based on distance-type','Impute the URIEL database','View distance vector used for calculation'],
+    'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using features','Calculate confidence score betweeen two languages based on distance-type','Impute the URIEL database','View distance vector used for calculation','Get loaded feature array'],
     # 'second column': [10, 20, 30, 40]
     })
 
@@ -252,8 +269,6 @@ option = st.selectbox(
      df['calculation options'],
       index=None,
      )
-
-'You selected: ', option
 
 ##Going through the different options
 ##If they choose to impute the database, give them option to choose which ones to impute or just impute all
@@ -431,6 +446,58 @@ elif (option == 'View distance vector used for calculation'):
                 for lang, scores in response.items():
                     df = pd.DataFrame(scores, columns=[f"Vector for ({language_options}) based on {distance_options} distance:"])
                     st.dataframe(df)  # Displays scores in a scrollable table
+# elif (option == 'Get feature coverage'):
+#     df = pd.DataFrame({
+#         'Resource level': ["High-resource", "Medium-resource", "Low-resource"],
+#     })
+#     resource_options = st.selectbox(
+#         "Choose resource level of the languages to check feature coverage of.",
+#         df,  # Get language names dynamically
+#         help="Choose resource level of the languages to check feature coverage of.",
+#     )
+#     if resource_options:
+#         df = pd.DataFrame({
+#             'distance options': [ "Geographic","Genetic","Featural", "Syntactic", "Phonological", "Inventory", "Morphological"],
+#         })
+#         distance_options = st.selectbox(
+#             "Choose the type of distance to view vector for.",
+#             df['distance options'],  # Get language names dynamically
+#             help="Choose type of distance to view vector for.",
+#         )
+#         if st.button('View'):
+#             resource_options = str(resource_options.lower())
+#             distance_type = str(distance_options.lower())
+#             response = get_feature_coverage(resource_options,distance_type)
+#             # response
+#             # Convert string to dictionary safely
+#             # response = ast.literal_eval(response)
+#             st.write(f"The feature coverage based on resource level is: " + str(response.text))
+elif (option == 'Get loaded feature array'):
+    df = pd.DataFrame({
+            'vectors': ["phylogeny","typological", "geography"],
+        })
+    vector_options = st.selectbox(
+            "Choose resource level of the languages to check feature coverage of.",
+            df['vectors'],  # Get language names dynamically
+            help="Choose resource level of the languages to check feature coverage of.",
+        )
+    if vector_options:
+        df = pd.DataFrame({
+            'features': ["features", "languages", "data", "sources"],
+        })
+        feature_options = st.selectbox(
+            "Choose resource level of the languages to check feature coverage of.",
+            df['features'],  # Get language names dynamically
+            help="Choose resource level of the languages to check feature coverage of.",
+        )
+        if st.button('View'):
+            response = get_loaded_feature({"vector_type": vector_options, "feature_type": feature_options})
+        df = pd.DataFrame(response, columns=["Features"])
+
+        st.dataframe(df, height=500)
+
+
+
 
 
 
