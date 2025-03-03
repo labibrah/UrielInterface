@@ -1,4 +1,18 @@
-URIEL_INTRO = ("URIEL is a knowledge base offering geographical, phylogenetic, and typological vector representations for 7970 languages. It includes distance measures between these vectors for 4005 languages, which are accessible via the lang2vec tool. URIEL+ is based on URIEL and expands typological feature coverage for 2898 languages, along with robust, customizable distance calculations to better suit the needs of users. This tool allows you to use the URIEL+ application without having to write code for it. It is intended to be used for research or general learning purposes.")
+URIEL_INTRO = ("""
+    ## 🌍 URIEL: A Language Knowledge Base  
+
+**URIEL** is a comprehensive knowledge base offering **geographical, phylogenetic, and typological vector representations** for **7,970 languages**. It includes **distance measures** between these vectors for **4,005 languages**, which are accessible via the **lang2vec** tool.  
+
+### 🔹 URIEL+ Expansion  
+**URIEL+** builds upon URIEL by expanding **typological feature coverage** for **2,898 languages**. It also provides **robust and customizable distance calculations** to better suit various research and learning needs.  
+
+### 🛠️ Using This Tool  
+This tool allows you to utilize the **URIEL+ application** **without writing any code**. It is designed for **researchers, linguists, and general learners** who want to explore language relationships effortlessly.  
+
+> **💡 Note:** You can **impute the database**, **integrate additional ones** or **aggegate** by going into their respective **"Settings"**. This will generate additional values and fill in missing data points.
+
+""")
+
 # Help text for "Activate caching"
 ACTIVATE_CACHING_HELP = (
     "Caching is default false to save memory, setting it true means updates to databases or imputation are saved to files."
@@ -140,8 +154,6 @@ This data structure provides a mapping of **parent languages** to their respecti
 - Leverage this information to aggregate or fill in missing typological data during analysis. 
 """
 
-
-URIEL_INTRO = "URIEL is a knowledge base offering geographical, phylogenetic, and typological vector representations for 7970 languages. It includes distance measures between these vectors for 4005 languages, which are accessible via the lang2vec tool. This tool allows you to make queries to the URIEL knowldege base without the need of writing code."
 
 LANG_ISO = {
     "English": "eng",
