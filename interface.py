@@ -23,12 +23,6 @@ st.header('What is URIEL?')
 st.write(URIEL_INTRO)
 
 
-# If working local, uncomment below Load the .env file
-load_dotenv()
-
-# Retrieve the API key
-API_KEY = os.getenv("URIEL_API_KEY")
-
 
 # Base URL for the API
 BASE_URL = "https://uriel-api-p-197469327377.us-east1.run.app"
