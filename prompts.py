@@ -9,7 +9,7 @@ URIEL_INTRO = ("""
 ### 🛠️ Using This Tool  
 This tool allows you to utilize the **URIEL+ application** **without writing any code**. It is designed for **researchers, linguists, and general learners** who want to explore language relationships effortlessly.  
 
-> **💡 Note:** You can **impute the database**, **integrate additional ones** or **aggegate** by going into their respective **"Settings"**. This will generate additional values and fill in missing data points.
+> **💡 Note:** You can **impute the database**, **integrate additional ones** or **aggegate** by going into their respective **"Settings"**. This will generate additional values and fill in missing data points. This tool is a work in progress. Some methods may fail. Values for some metrics may not be calculated successfully. 
 
 """)
 
