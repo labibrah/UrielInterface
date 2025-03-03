@@ -1,9 +1,10 @@
+import ast
+
 import streamlit as st
 import pandas as pd
-import random as rnd
 import requests
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from prompts import (
     URIEL_INTRO,
     ACTIVATE_CACHING_HELP,
@@ -21,11 +22,12 @@ st.title('Welcome to the URIEL UI+')
 st.header('What is URIEL?')
 st.write(URIEL_INTRO)
 
+
 # If working local, uncomment below Load the .env file
 load_dotenv()
 
 # Retrieve the API key
-# API_KEY = os.getenv("URIEL_API_KEY")
+API_KEY = os.getenv("URIEL_API_KEY")
 
 
 # Base URL for the API
@@ -33,6 +35,9 @@ BASE_URL = "https://uriel-api-p-197469327377.us-east1.run.app"
 
 
 # Headers for authentication
+# HEADERS = {
+#     "URIEL-API-key": API_KEY
+# }
 HEADERS = {
     "URIEL-API-key": st.secrets["API_KEY"]
 }
@@ -197,9 +202,52 @@ def get_loaded_feature(params):
         print("Error:", response.status_code, response.text)
     return response.json()
 
+def integrate_database(databases):
+    results = {}
+    for db in databases:
+        params = {"databases": db}
+        response = requests.get(f"{BASE_URL}/integrate", headers=HEADERS, params=params)
+        # response.text
+        if response.status_code == 200:
+            results[db] = response.text
+        else:
+            st.error(f"Failed to integrate {db}. Please try again.")
+
+    return results
+def aggregate_database(strategy):
+    params = {
+        "strategy": strategy,
+    }
+    response = requests.get(f"{BASE_URL}/aggregate", headers=HEADERS, params=params)
+    # response.text
+    if response.status_code == 200:
+        st.write("Aggregated successfully")
+    else:
+        st.error(f"Failed to aggregate. Please try again.")
+    return response.text
+def impute_database(strategy):
+    params = {
+        "strategy": strategy,
+    }
+    response = requests.get(f"{BASE_URL}/impute", headers=HEADERS, params=params)
+    # response.text
+    if response.status_code == 200:
+        st.write("Imputed successfully")
+    else:
+        st.error(f"Failed to impute. Please try again.")
+    return response.text
+
 # Initialize session state for settings visibility and toggle values
 if "show_settings" not in st.session_state:
     st.session_state.show_settings = False
+
+if "show_integrate_settings" not in st.session_state:
+    st.session_state.show_integrate_settings = False
+if "show_aggregate_settings" not in st.session_state:
+    st.session_state.show_aggregate_settings = False
+if "show_impute_settings" not in st.session_state:
+    st.session_state.show_impute_settings = False
+
 if "cache_toggle_value" not in st.session_state:
     st.session_state.cache_toggle_value = False
 if "distance_option_value" not in st.session_state:
@@ -209,46 +257,122 @@ if "avg_aggregation_toggle" not in st.session_state:
 if "fill_with_base_lang_toggle" not in st.session_state:
     st.session_state.fill_with_base_lang_toggle = False
 
+if "show_dialects" not in st.session_state:
+    st.session_state.show_dialects = False
+if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
+    st.session_state.show_dialects = not st.session_state.show_dialects
+if st.session_state.show_dialects:
+    df = pd.DataFrame(DIALECTS.items(), columns=["ID", "Dialects"])
+    st.dataframe(df, height=500)
 # Toggle the visibility of the settings section
 # if st.button("Settings", icon=":material/settings:"):
-if st.button("Settings", icon="⚙️"):
-    st.session_state.show_settings = not st.session_state.show_settings
+# if st.button("Settings", icon="⚙️"):
+#     st.session_state.show_settings = not st.session_state.show_settings
+#
+# # Display the settings section if it's toggled on
+# if st.session_state.show_settings:
+#     if "show_dialects" not in st.session_state:
+#       st.session_state.show_dialects = False
+#     if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
+#         st.session_state.show_dialects = not st.session_state.show_dialects
+#     if st.session_state.show_dialects:
+#         df = pd.DataFrame(DIALECTS.items(), columns=["ID", "Dialects"])
+#
+#         st.dataframe(df, height=500)
+#     left_column, middle_column, right_column = st.columns(3)
+#     with left_column:
+#         # if st.button("Integrate", type="primary"):
+#         #     selected = st.multiselect(
+#         #         "Select databases to impute:",
+#         #         ["UPDATED_SAPHON", "BDPROTO", "GRAMBANK", "APICS", "EWAVE"],
+#         #     )
+#         #
+#         #     if selected:
+#         #         st.write(selected)
+#         #         with st.spinner("Imputing databases..."):
+#         #             result = impute_database(selected)
+#
+#                 # if result:
+#                 #     st.success("Database imputation successful!")
+#                 #     st.json(result)  # Display API response
+#
+#         st.session_state.cache_toggle_value = st.checkbox(
+#             "Activate caching",
+#             value=st.session_state.get("cache_toggle_value", False),
+#             help=ACTIVATE_CACHING_HELP
+#         )
+#         # st.session_state.distance_option_value = st.checkbox(
+#         #     "Set distance to cosine",
+#         #     value=st.session_state.get("distance_option_value", False),
+#         #     help=COSINE_DISTANCE_HELP
+#         # )
+#     with middle_column:
+#         if st.button("Aggregate", icon=":material/settings:"):
+#             st.write("Imputing Dialects")
+#         # st.session_state.avg_aggregation_toggle = st.checkbox(
+#         #     "Set aggregation to average",
+#         #     value=st.session_state.get("avg_aggregation_toggle", False),
+#         #     help=AGGREGATION_HELP
+#         # )
+#     with right_column:
+#         if st.button("Impute", icon=":material/settings:"):
+#             st.write("Imputing Dialects")
+#         # st.session_state.fill_with_base_lang_toggle = st.checkbox(
+#         #     "Fill with base language",
+#         #     value=st.session_state.get("fill_with_base_lang_toggle", False),
+#         #     help=FILL_WITH_BASE_LANGUAGE_HELP
+#         # )
 
-# Display the settings section if it's toggled on
-if st.session_state.show_settings:
-    if "show_dialects" not in st.session_state:
-      st.session_state.show_dialects = False
-    if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
-        st.session_state.show_dialects = not st.session_state.show_dialects
-    if st.session_state.show_dialects:
-        df = pd.DataFrame(DIALECTS.items(), columns=["ID", "Dialects"])
 
-        st.dataframe(df, height=500)
-    left_column, middle_column, right_column = st.columns(3)
-    with left_column:
-        st.session_state.cache_toggle_value = st.checkbox(
-            "Activate caching",
-            value=st.session_state.get("cache_toggle_value", False),
-            help=ACTIVATE_CACHING_HELP
+if st.button("Integrate Settings", type="secondary"):
+    st.session_state.show_integrate_settings = not st.session_state.show_integrate_settings
+
+if st.session_state.show_integrate_settings:
+        selected = st.multiselect(
+            "Select databases to impute:",
+            ["UPDATED_SAPHON", "BDPROTO", "GRAMBANK", "APICS", "EWAVE"],
         )
-        st.session_state.distance_option_value = st.checkbox(
-            "Set distance to cosine",
-            value=st.session_state.get("distance_option_value", False),
-            help=COSINE_DISTANCE_HELP
-        )
-    with middle_column:
-        st.session_state.avg_aggregation_toggle = st.checkbox(
-            "Set aggregation to average",
-            value=st.session_state.get("avg_aggregation_toggle", False),
-            help=AGGREGATION_HELP
-        )
-    with right_column:
-        st.session_state.fill_with_base_lang_toggle = st.checkbox(
-            "Fill with base language",
-            value=st.session_state.get("fill_with_base_lang_toggle", False),
-            help=FILL_WITH_BASE_LANGUAGE_HELP
-        )
-        
+        if st.button("Integrate"):
+            # st.write(selected)
+            with st.spinner("Integrating databases...(this may take a while)"):
+                result = integrate_database(selected)
+
+            if result:
+                st.success("Database integration successful!")
+                st.json(result)  # Display API response
+
+if st.button("Aggregation Settings", type="secondary"):
+    st.session_state.show_aggregate_settings = not st.session_state.show_aggregate_settings
+if  st.session_state.show_aggregate_settings:
+    selected = st.selectbox(
+        "Select aggregation strategy:",
+        ["Union", "Average"],
+    )
+    if st.button("Aggreate"):
+        dict = {
+            "Union":"U",
+            "Average":"A",
+        }
+        with st.spinner("Aggregating databases...(this may take a while)"):
+            st.write(dict[selected])
+            result = aggregate_database(dict[selected])
+            if result:
+                st.success("Database aggregation successful!")
+                st.json(result)  # Display API response
+
+if st.button("Imputation Settings", type="secondary"):
+    st.session_state.show_impute_settings = not st.session_state.show_impute_settings
+if st.session_state.show_impute_settings:
+    selected = st.selectbox(
+        "Select strategy to impute with:",
+        ["Midaspy", "KNN", "Softimpute","Mean"],
+    )
+    if st.button("Impute"):
+        selected = selected.lower()
+        with st.spinner("Imputing databases...(this may take a while)"):
+            response = impute_database(selected)
+            st.write("he")
+
 
 
 # Display the current states (for debugging purposes)
@@ -431,16 +555,10 @@ elif (option == 'View distance vector used for calculation'):
             help="Choose type of distance to view vector for.",
         )
         if st.button('View'):
-            languages[language_options]
-            # selected_iso_codes = [languages[lang] for lang in language_options]  # Convert selected names to ISO
-            # selected_languages = ",".join(selected_iso_codes)  # Create a comma-separated string
-            # selected_languages = selected_languages.split(",")
             distance_type = str(distance_options.lower())
             response = get_distance_vector_(distance_type, languages[language_options])
-            # response
             # Convert string to dictionary safely
             response = ast.literal_eval(response)
-
             # Ensure it's a dictionary
             if isinstance(response, dict):
                 for lang, scores in response.items():
@@ -474,7 +592,7 @@ elif (option == 'View distance vector used for calculation'):
 #             st.write(f"The feature coverage based on resource level is: " + str(response.text))
 elif (option == 'Get loaded feature array'):
     df = pd.DataFrame({
-            'vectors': ["phylogeny","typological", "geography"],
+            'vectors': ["Phylogeny","Typological", "Geography"],
         })
     vector_options = st.selectbox(
             "Choose resource level of the languages to check feature coverage of.",
@@ -483,7 +601,7 @@ elif (option == 'Get loaded feature array'):
         )
     if vector_options:
         df = pd.DataFrame({
-            'features': ["features", "languages", "data", "sources"],
+            'features': ["Features", "Languages", "Data", "Sources"],
         })
         feature_options = st.selectbox(
             "Choose resource level of the languages to check feature coverage of.",
@@ -491,10 +609,12 @@ elif (option == 'Get loaded feature array'):
             help="Choose resource level of the languages to check feature coverage of.",
         )
         if st.button('View'):
+            vector_options = vector_options.lower()
+            feature_options = feature_options.lower()
             response = get_loaded_feature({"vector_type": vector_options, "feature_type": feature_options})
-        df = pd.DataFrame(response, columns=["Features"])
+            df = pd.DataFrame(response, columns=["Features"])
 
-        st.dataframe(df, height=500)
+            st.dataframe(df, height=500)
 
 
 
