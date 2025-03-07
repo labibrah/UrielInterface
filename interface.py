@@ -107,9 +107,9 @@ with st.sidebar:
     st.title("Uriel conversational agent")
 
     # Display chat messages from history on app rerun
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # for message in st.session_state.messages:
+    #     with st.chat_message(message["role"]):
+    #         st.markdown(message["content"])
 
     # Accept user input
     if prompt := st.chat_input("Ask me questions about Uriel!"):
@@ -295,7 +295,7 @@ def integrate_database(databases):
         # response.text
         if response.status_code == 200:
             results[db] = response.text
-            message_appender("The database " + db +" has been integrated.")
+            message_appender("The database " + db +" has been integrated for more values.")
         else:
             st.error(f"Failed to integrate {db}. Please try again.")
 
@@ -488,7 +488,7 @@ if (option == 'Calculate specific distance between languages'):
 
             if st.button('Compute'):
                 response = get_distance({"languages": selected_languages, "type": distance_type})
-                message_appender("The " + distance_type + " for " + selected_languages + " was " + (str)(response))
+                message_appender("The distance type of " + distance_type + " for " + selected_languages + " was " + (str)(response))
                 if isinstance(response, list):  # Ensure response is a list (matrix)
                     st.write(f"The {distance_type} distance matrix is:")
 
