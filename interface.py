@@ -1,10 +1,10 @@
 import ast
-
+import time
+import cohere
 import streamlit as st
 import pandas as pd
 import requests
-import os
-# from dotenv import load_dotenv
+import random
 from prompts import (
     URIEL_INTRO,
     ACTIVATE_CACHING_HELP,
@@ -17,7 +17,17 @@ from prompts import (
     DIALECTS_HELP,
     LANG_ISO
 )
-
+st.set_page_config(
+    page_title="Uriel UI",
+    page_icon=":speech_balloon:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://www.extremelycoolapp.com/help',
+        'Report a bug': "https://www.extremelycoolapp.com/bug",
+        'About': "# This is a header. This is an *extremely* cool app!"
+    }
+)
 st.title('Welcome to the URIEL UI+')
 st.header('What is URIEL?')
 st.write(URIEL_INTRO)
@@ -28,13 +38,92 @@ st.write(URIEL_INTRO)
 BASE_URL = "https://uriel-api-p-197469327377.us-east1.run.app"
 
 
-# Headers for authentication
-# HEADERS = {
-#     "URIEL-API-key": API_KEY
-# }
 HEADERS = {
     "URIEL-API-key": st.secrets["API_KEY"]
 }
+
+
+## Chat bot implementation
+# Initialize session state for settings visibility and toggle values
+if "show_settings" not in st.session_state:
+    st.session_state.show_settings = False
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "show_integrate_settings" not in st.session_state:
+    st.session_state.show_integrate_settings = False
+if "show_aggregate_settings" not in st.session_state:
+    st.session_state.show_aggregate_settings = False
+if "show_impute_settings" not in st.session_state:
+    st.session_state.show_impute_settings = False
+
+if "cache_toggle_value" not in st.session_state:
+    st.session_state.cache_toggle_value = False
+if "distance_option_value" not in st.session_state:
+    st.session_state.distance_option_value = False
+if "avg_aggregation_toggle" not in st.session_state:
+    st.session_state.avg_aggregation_toggle = False
+if "fill_with_base_lang_toggle" not in st.session_state:
+    st.session_state.fill_with_base_lang_toggle = False
+
+if "show_dialects" not in st.session_state:
+    st.session_state.show_dialects = False
+if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
+    st.session_state.show_dialects = not st.session_state.show_dialects
+
+co = cohere.ClientV2(st.secrets["COHERE"]) # This is your trial API key
+
+# print(response)
+# Create a custom system message
+system_message="""## Task and Context
+You are an assistant who assists with use of the Uriel database related to language queries.
+
+## Style Guide
+Be professional."""
+
+# Streamed response emulator
+def response_generator():
+    response = co.chat(
+        model='d28bb7fb-f7d7-435a-90b6-712f32563038-ft',
+        messages=st.session_state.messages)
+    print(response.message.content[0].text)
+    for word in response.message.content[0].text.split():
+        yield word + " "
+        time.sleep(0.05)
+    return response.message.content[0].text
+
+# Initialize chat history
+
+
+def message_generator():
+    for message in st.session_state.messages:
+        print(message,"\n")
+def message_appender(message):
+    st.session_state.messages.append(
+        {"role": "assistant", "content": message})
+# Using "with" notation
+with st.sidebar:
+    st.title("Uriel conversational agent")
+
+    # Display chat messages from history on app rerun
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Accept user input
+    if prompt := st.chat_input("Ask me questions about Uriel!"):
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        # Display user message in chat message container
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            response = st.write_stream(response_generator())
+        # Add assistant response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": response})
 #
 # # Example: Test the root endpoint
 def test_root():
@@ -58,6 +147,7 @@ def get_distance(params):
     response = requests.get(f"{BASE_URL}/distance", headers=HEADERS, params=params)
     if response.status_code == 200:
         print("Distance Response:", response.json())
+
     else:
         print("Error:", response.status_code, response.text)
     return response.json()
@@ -76,7 +166,7 @@ def post_custom_distance(data):
     if response.status_code == 200:
         print("Custom Distance Response:", response.text)
     else:
-        print("Error:", response.status_code, response.text)
+        print("Error try a different database or feature list:", response.status_code, response.text)
     return response.text
 
 # Example: GET /distance_vector
@@ -100,7 +190,7 @@ def get_feature_coverage(resource_options,distance_type):
         "distance_type": distance_type  # Convert list to CSV string
     }
     # response = requests.get(f"{BASE_URL}/set_glottocodes", headers=HEADERS)
-    st.write(headers)
+    # st.write(headers)
     # time.sleep(5)
     st.write(params)
     # response = requests.get(f"{BASE_URL}/feature_coverage", headers=HEADERS,params=params)
@@ -134,6 +224,7 @@ def get_confidence_score(params):
             if raw_text.startswith("(") and raw_text.endswith(")"):
                 confidence_score = eval(raw_text)  # Converts string tuple to actual tuple
                 print("Confidence Score Response:", confidence_score)
+                message_appender("The confidence Score Response for " + str(params) + " is " + str(confidence_score) + " for Agreement and and Missing Values respectively.")
                 return confidence_score
             else:
                 print("Unexpected response format:", raw_text)
@@ -204,6 +295,7 @@ def integrate_database(databases):
         # response.text
         if response.status_code == 200:
             results[db] = response.text
+            message_appender("The database " + db +" has been integrated.")
         else:
             st.error(f"Failed to integrate {db}. Please try again.")
 
@@ -231,30 +323,9 @@ def impute_database(strategy):
         st.error(f"Failed to impute. Please try again.")
     return response.text
 
-# Initialize session state for settings visibility and toggle values
-if "show_settings" not in st.session_state:
-    st.session_state.show_settings = False
 
-if "show_integrate_settings" not in st.session_state:
-    st.session_state.show_integrate_settings = False
-if "show_aggregate_settings" not in st.session_state:
-    st.session_state.show_aggregate_settings = False
-if "show_impute_settings" not in st.session_state:
-    st.session_state.show_impute_settings = False
 
-if "cache_toggle_value" not in st.session_state:
-    st.session_state.cache_toggle_value = False
-if "distance_option_value" not in st.session_state:
-    st.session_state.distance_option_value = False
-if "avg_aggregation_toggle" not in st.session_state:
-    st.session_state.avg_aggregation_toggle = False
-if "fill_with_base_lang_toggle" not in st.session_state:
-    st.session_state.fill_with_base_lang_toggle = False
 
-if "show_dialects" not in st.session_state:
-    st.session_state.show_dialects = False
-if st.button("Parent languages and dialects", icon="📜", help=DIALECTS_HELP):
-    st.session_state.show_dialects = not st.session_state.show_dialects
 if st.session_state.show_dialects:
     df = pd.DataFrame(DIALECTS.items(), columns=["ID", "Dialects"])
     st.dataframe(df, height=500)
@@ -332,7 +403,7 @@ if st.session_state.show_integrate_settings:
                 result = integrate_database(selected)
 
             if result:
-                st.success("Database integration successful!")
+                st.success("Successful integrations below:")
                 st.json(result)  # Display API response
 
 if st.button("Aggregation Settings", type="secondary"):
@@ -348,24 +419,24 @@ if  st.session_state.show_aggregate_settings:
             "Average":"A",
         }
         with st.spinner("Aggregating databases...(this may take a while)"):
-            st.write(dict[selected])
+            # st.write(dict[selected])
             result = aggregate_database(dict[selected])
-            if result:
-                st.success("Database aggregation successful!")
-                st.json(result)  # Display API response
+            # if result:
+            #     st.success("Database aggregation successful!")
+                # st.json(result)  # Display API response
 
 if st.button("Imputation Settings", type="secondary"):
     st.session_state.show_impute_settings = not st.session_state.show_impute_settings
 if st.session_state.show_impute_settings:
+    # knn omitted
     selected = st.selectbox(
         "Select strategy to impute with:",
-        ["Midaspy", "KNN", "Softimpute","Mean"],
+        ["Midaspy", "Softimpute","Mean"],
     )
     if st.button("Impute"):
         selected = selected.lower()
         with st.spinner("Imputing databases...(this may take a while)"):
             response = impute_database(selected)
-            st.write("he")
 
 
 
@@ -378,7 +449,7 @@ if st.session_state.show_impute_settings:
 # st.write("Fill with base language:", st.session_state.fill_with_base_lang_toggle)
 
 df = pd.DataFrame({
-    'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using features','Calculate confidence score betweeen two languages based on distance-type','Impute the URIEL database','View distance vector used for calculation','Get loaded feature array'],
+    'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using features','Calculate confidence score betweeen two languages based on distance-type','View distance vector used for calculation','Get loaded feature array'],
     # 'second column': [10, 20, 30, 40]
     })
 
@@ -390,25 +461,7 @@ option = st.selectbox(
 
 ##Going through the different options
 ##If they choose to impute the database, give them option to choose which ones to impute or just impute all
-if (option == 'Impute the URIEL database'):
-    df = pd.DataFrame({
-    'impute options': ['Updated SAPhon', 
-    'BDProto', 
-    'Grambank', 
-    'APiCS', 
-    'eWave', 
-    'Inferred', 
-    'All'],
-    })
-    impute_option = st.selectbox(
-    'Which database would you like to impute into the URIEL database?',
-     df['impute options'],
-     index=None,
-     help= IMPUTE_OPTIONS_HELP)
-    if st.button('Impute'):
-            'The URIEL database was successfully imputed.'
-
-elif (option == 'Calculate specific distance between languages'):
+if (option == 'Calculate specific distance between languages'):
     df = pd.DataFrame({
     'distance options': ['Geographic','Featural','Genetic','Morphological','Inventory','Phonological','Syntactic'],
     })
@@ -435,7 +488,7 @@ elif (option == 'Calculate specific distance between languages'):
 
             if st.button('Compute'):
                 response = get_distance({"languages": selected_languages, "type": distance_type})
-
+                message_appender("The " + distance_type + " for " + selected_languages + " was " + (str)(response))
                 if isinstance(response, list):  # Ensure response is a list (matrix)
                     st.write(f"The {distance_type} distance matrix is:")
 
@@ -487,6 +540,7 @@ elif (option == 'Calculate custom distance between languages using features'):
                     rows = response.split("], [")  # Split into rows
 
                     # Convert each row into a list of floats
+                    st.write(response)
                     response = [list(map(float, row.split(", "))) for row in rows]
                     if isinstance(response, list):  # Ensure response is a list (matrix)
                         st.write(f"The distance matrix based on custom features is: ")
@@ -609,6 +663,7 @@ elif (option == 'Get loaded feature array'):
             df = pd.DataFrame(response, columns=["Features"])
 
             st.dataframe(df, height=500)
+
 
 
 
