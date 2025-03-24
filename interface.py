@@ -1,6 +1,7 @@
 import ast
 import time
 import cohere
+import numpy as np
 import streamlit as st
 import pandas as pd
 import requests
@@ -23,12 +24,26 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://www.extremelycoolapp.com/help',
-        'Report a bug': "https://www.extremelycoolapp.com/bug",
-        'About': "# This is a header. This is an *extremely* cool app!"
+
+        'About': "# This is an *extremely* cool app built with hardwork by Labib Rahman!"
     }
 )
-st.title('Welcome to the URIEL UI+')
+
+GREETING = """
+Welcome to **ExploRIEL:** An easy to use interface for the URIEL+ knowledge base.
+"""
+
+
+def stream_data():
+    for word in URIEL_INTRO.split(" "):
+        yield word + " "
+        time.sleep(0.02)
+
+
+# st.write_stream(stream_data)
+st.title(GREETING)
+st.divider()
+
 st.header('What is URIEL?')
 st.write(URIEL_INTRO)
 
@@ -80,7 +95,7 @@ system_message="""## Task and Context
 You are an assistant who assists with use of the Uriel database related to language queries.
 
 ## Style Guide
-Be professional."""
+Be professional. Keep your answers concise to a maxiumum three or four sentences."""
 
 # Streamed response emulator
 def response_generator():
@@ -169,36 +184,27 @@ def post_custom_distance(data):
         print("Error try a different database or feature list:", response.status_code, response.text)
     return response.text
 
-# Example: GET /distance_vector
-def get_distance_vector(params):
-    """
-    Example query parameter: {"lang": "eng"}
-    """
-    response = requests.get(f"{BASE_URL}/distance_vector", headers=HEADERS, params=params)
-    if response.status_code == 200:
-        print("Distance Vector Response:", response.json())
-    else:
-        print("Error:", response.status_code, response.text)
+
 
 # Example: GET /feature_coverage
-def get_feature_coverage(resource_options,distance_type):
-    """
-    Example query parameter: {"lang": "eng"}
-    """
-    params = {
-        "resource_level": resource_options,  # Ensure this matches the API docs
-        "distance_type": distance_type  # Convert list to CSV string
-    }
-    # response = requests.get(f"{BASE_URL}/set_glottocodes", headers=HEADERS)
-    # st.write(headers)
-    # time.sleep(5)
-    st.write(params)
-    # response = requests.get(f"{BASE_URL}/feature_coverage", headers=HEADERS,params=params)
-    if response.status_code == 200:
-        print("Feature Coverage Response:", response.text)
-        return response.text
-    else:
-        print("Error:", response.status_code, response.text)
+# def get_feature_coverage(resource_options,distance_type):
+#     """
+#     Example query parameter: {"lang": "eng"}
+#     """
+#     params = {
+#         "resource_level": resource_options,  # Ensure this matches the API docs
+#         "distance_type": distance_type  # Convert list to CSV string
+#     }
+#     # response = requests.get(f"{BASE_URL}/set_glottocodes", headers=HEADERS)
+#     # st.write(headers)
+#     # time.sleep(5)
+#     st.write(params)
+#     # response = requests.get(f"{BASE_URL}/feature_coverage", headers=HEADERS,params=params)
+#     if response.status_code == 200:
+#         print("Feature Coverage Response:", response.text)
+#         return response.text
+#     else:
+#         print("Error:", response.status_code, response.text)
 
 # Example: GET /confidence_score
 
@@ -262,6 +268,8 @@ def get_distance_vector_(type, languages):
 
     if response.status_code == 200:
         print("Distance Vector Response:", response.text)
+        message_appender("The distance vector of type " + type + " for " + languages + "which used to calculate language distance metrics is " + response.text)
+
         return response.text
     else:
         print("Error:", response.status_code, response.text)
@@ -276,6 +284,8 @@ def get_distance_vector_(type, languages):
 
 # get_confidence_score({"language_1": "eng", "language_2": "fra", "distance_type": "featural"})
 
+
+
 def get_loaded_feature(params):
     """
     Example query parameters: {"lang1": "eng", "lang2": "jpn"}
@@ -283,6 +293,8 @@ def get_loaded_feature(params):
     response = requests.get(f"{BASE_URL}/loaded_feature_array", headers=HEADERS, params=params)
     if response.status_code == 200:
         print("Distance Response:", response.json())
+        message_appender("The loaded feature array of vector type " + params["vector_type"] + " and feature type " + params["feature_type"] +" is:" + response.text)
+
     else:
         print("Error:", response.status_code, response.text)
     return response.json()
@@ -329,6 +341,9 @@ def impute_database(strategy):
 if st.session_state.show_dialects:
     df = pd.DataFrame(DIALECTS.items(), columns=["ID", "Dialects"])
     st.dataframe(df, height=500)
+
+st.header("Settings")
+st.divider()
 # Toggle the visibility of the settings section
 # if st.button("Settings", icon=":material/settings:"):
 # if st.button("Settings", icon="⚙️"):
@@ -389,7 +404,7 @@ if st.session_state.show_dialects:
 #         # )
 
 
-if st.button("Integrate Settings", type="secondary"):
+if st.button("Add Other Databases (Integrate Settings)", type="secondary"):
     st.session_state.show_integrate_settings = not st.session_state.show_integrate_settings
 
 if st.session_state.show_integrate_settings:
@@ -406,7 +421,7 @@ if st.session_state.show_integrate_settings:
                 st.success("Successful integrations below:")
                 st.json(result)  # Display API response
 
-if st.button("Aggregation Settings", type="secondary"):
+if st.button("Combine Data (Aggregation Settings)", type="secondary"):
     st.session_state.show_aggregate_settings = not st.session_state.show_aggregate_settings
 if  st.session_state.show_aggregate_settings:
     selected = st.selectbox(
@@ -425,7 +440,7 @@ if  st.session_state.show_aggregate_settings:
             #     st.success("Database aggregation successful!")
                 # st.json(result)  # Display API response
 
-if st.button("Imputation Settings", type="secondary"):
+if st.button("Add Missing Values (Imputation Settings)", type="secondary"):
     st.session_state.show_impute_settings = not st.session_state.show_impute_settings
 if st.session_state.show_impute_settings:
     # knn omitted
@@ -447,7 +462,8 @@ if st.session_state.show_impute_settings:
 # st.write("Distance option active:", st.session_state.distance_option_value)
 # st.write("Aggregation toggle:", st.session_state.avg_aggregation_toggle)
 # st.write("Fill with base language:", st.session_state.fill_with_base_lang_toggle)
-
+st.header("Calculations")
+st.divider()
 df = pd.DataFrame({
     'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using features','Calculate confidence score betweeen two languages based on distance-type','View distance vector used for calculation','Get loaded feature array'],
     # 'second column': [10, 20, 30, 40]
@@ -475,7 +491,7 @@ if (option == 'Calculate specific distance between languages'):
           # Dictionary of language names to ISO codes
 
         options = st.multiselect(
-            "Choose languages to calculate distance of",
+            "Choose two or more languages to calculate distance of",
             list(languages.keys()),  # Get language names dynamically
             help="Choose two or more languages to calculate the distance of."
         )
@@ -643,18 +659,18 @@ elif (option == 'Get loaded feature array'):
             'vectors': ["Phylogeny","Typological", "Geography"],
         })
     vector_options = st.selectbox(
-            "Choose resource level of the languages to check feature coverage of.",
+            "Choose vector type to get loaded feature array of.",
             df['vectors'],  # Get language names dynamically
-            help="Choose resource level of the languages to check feature coverage of.",
+            help="Choose vector type to get loaded feature array of.",
         )
     if vector_options:
         df = pd.DataFrame({
             'features': ["Features", "Languages", "Data", "Sources"],
         })
         feature_options = st.selectbox(
-            "Choose resource level of the languages to check feature coverage of.",
+            "Choose feature type to get loaded feature array of.",
             df['features'],  # Get language names dynamically
-            help="Choose resource level of the languages to check feature coverage of.",
+            help="Choose feature type to get loaded feature array of.",
         )
         if st.button('View'):
             vector_options = vector_options.lower()
