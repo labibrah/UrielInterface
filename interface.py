@@ -95,8 +95,11 @@ system_message="""## Task and Context
 You are an assistant who assists with use of the Uriel database related to language queries.
 
 ## Style Guide
-Be professional. Keep your answers concise to a maxiumum three or four sentences."""
-
+Be professional. Keep your answers concise to a maximum three or four sentences."""
+def message_appender(message):
+    st.session_state.messages.append(
+        {"role": "assistant", "content": message})
+message_appender(system_message)
 # Streamed response emulator
 def response_generator():
     response = co.chat(
@@ -114,9 +117,7 @@ def response_generator():
 def message_generator():
     for message in st.session_state.messages:
         print(message,"\n")
-def message_appender(message):
-    st.session_state.messages.append(
-        {"role": "assistant", "content": message})
+
 # Using "with" notation
 with st.sidebar:
     st.title("Uriel conversational agent")
