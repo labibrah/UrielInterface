@@ -30,7 +30,7 @@ st.set_page_config(
 )
 
 GREETING = """
-Welcome to **ExploRIEL:** An easy to use interface for the URIEL+ knowledge base.
+Welcome to **ExploRIEL:**
 """
 
 
@@ -42,6 +42,7 @@ def stream_data():
 
 # st.write_stream(stream_data)
 st.title(GREETING)
+st.subheader("An easy to use interface for the URIEL+ knowledge base.")
 st.divider()
 
 st.header('What is URIEL?')
@@ -120,7 +121,7 @@ def message_generator():
 
 # Using "with" notation
 with st.sidebar:
-    st.title("Uriel conversational agent")
+    st.title("ExploRIEL conversational agent")
 
     # Display chat messages from history on app rerun
     # for message in st.session_state.messages:
@@ -429,7 +430,7 @@ if  st.session_state.show_aggregate_settings:
         "Select aggregation strategy:",
         ["Union", "Average"],
     )
-    if st.button("Aggreate"):
+    if st.button("Aggregate"):
         dict = {
             "Union":"U",
             "Average":"A",
@@ -441,7 +442,7 @@ if  st.session_state.show_aggregate_settings:
             #     st.success("Database aggregation successful!")
                 # st.json(result)  # Display API response
 
-if st.button("Add Missing Values (Imputation Settings)", type="secondary"):
+if st.button("Replace Missing Values (Imputation Settings)", type="secondary"):
     st.session_state.show_impute_settings = not st.session_state.show_impute_settings
 if st.session_state.show_impute_settings:
     # knn omitted
@@ -466,7 +467,7 @@ if st.session_state.show_impute_settings:
 st.header("Calculations")
 st.divider()
 df = pd.DataFrame({
-    'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using features','Calculate confidence score betweeen two languages based on distance-type','View distance vector used for calculation','Get loaded feature array'],
+    'calculation options': ['Calculate specific distance between languages','Calculate custom distance between languages using select features','Calculate confidence score between two languages based on distance-type','View distance vector used for calculation','Get loaded feature array'],
     # 'second column': [10, 20, 30, 40]
     })
 
@@ -515,7 +516,7 @@ if (option == 'Calculate specific distance between languages'):
                     st.dataframe(df.style.format(precision=4))  # Nicely formatted table
                 else:
                     st.write(f"The {distance_type} distance is: " + (str)(response))
-elif (option == 'Calculate custom distance between languages using features'):
+elif option == 'Calculate custom distance between languages using select features':
     languages = LANG_ISO
     language_options = st.multiselect(
         "Choose languages to calculate distance(s) based on custom features.",
